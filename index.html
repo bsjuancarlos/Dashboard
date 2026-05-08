@@ -387,27 +387,46 @@ function procesarDatos() {
     if (months.length > 0) selectMonth(months[0].name);
 }
         
-        function processData() {
-            let ingIdx = -1, gasIdx = -1;
-            for (let i = 0; i < rawData.length; i++) {
-                if (rawData[i][0] === 'Ingresos') ingIdx = i;
-                if (rawData[i][0] === 'Gastos') gasIdx = i;
-            }
-            
-            months = [];
-            for (let col = 1; col < rawData[0].length; col++) {
-                const h = rawData[0][col]?.toString().trim();
-                if (h) {
-                    const ing = rawData[ingIdx]?.[col] || 0;
-                    const gas = rawData[gasIdx]?.[col] || 0;
-                    if (ing > 0 || gas > 0) months.push({ name: h, col });
-                }
-            }
+function processData() {
+
+    let ingIdx = -1, gasIdx = -1;
+
+    for (let i = 0; i < rawData.length; i++) {
+        const name = rawData[i][0]?.toString().trim();
+
+        if (name === 'Ingresos') ingIdx = i;
+        if (name === 'Gastos') gasIdx = i;
+    }
+
+    months = [];
+
+    for (let col = 1; col < rawData[0].length; col++) {
+
+        const rawHeader = rawData[0][col];
+
+        if (!rawHeader) continue;
+
+        const cleanHeader = rawHeader
+            .toString()
+            .replace(/\n/g, ' ')   // 🔥 CLAVE
+            .replace(/"/g, '')
+            .trim();
+
+        const ing = rawData[ingIdx]?.[col] || 0;
+        const gas = rawData[gasIdx]?.[col] || 0;
+
+        if (cleanHeader && (ing > 0 || gas > 0)) {
+            months.push({
+                name: cleanHeader,
+                col
+            });
         }
+    }
+}
         
         function renderUI() {
             document.getElementById('monthTabs').innerHTML = months
-                .map(m => `<button class="month-tab" onclick="selectMonth('${m.name}')">${m.name}</button>`).join('');
+                .map(m => `<button class="month-tab" onclick="selectMonth('${m.name.replace(/'/g, "\\'")}')">${m.name}</button>`).join('');
         }
         
         function selectMonth(name) {
