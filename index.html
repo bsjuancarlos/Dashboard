@@ -1,465 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Finanzas</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-        }
-        
-        .header {
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            gap: 30px;
-        }
-        
-        .header-left h1 {
-            font-size: 32px;
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .header-left p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .header-right {
-            background: #f0f4ff;
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #667eea;
-            flex: 0 0 400px;
-        }
-        
-        .header-right h3 {
-            font-size: 14px;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .header-right p {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        
-        .header-right textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 12px;
-            resize: vertical;
-        }
-        
-        .header-right button {
-            margin-top: 10px;
-            padding: 10px 15px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-        }
-        
-        .header-right button:hover {
-            background: #5568d3;
-        }
-        
-        .success-message {
-            margin-top: 10px;
-            padding: 10px;
-            background: #d4edda;
-            color: #155724;
-            border-radius: 6px;
-            font-size: 12px;
-            display: none;
-        }
-        
-        .month-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 15px;
-        }
-        
-        .month-tab {
-            padding: 10px 16px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: #666;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .month-tab:hover {
-            color: #667eea;
-        }
-        
-        .month-tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-        
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .metric-card {
-            background: #667eea;
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .metric-card.ingresos {
-            background: #10b981;
-        }
-        
-        .metric-card.gasto {
-            background: #ef4444;
-        }
-        
-        .metric-card.balance {
-            background: #f59e0b;
-        }
-        
-        .metric-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .metric-value {
-            font-size: 28px;
-            font-weight: 700;
-        }
-        
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .chart-wrapper {
-            background: #f9f9f9;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-        
-        .chart-canvas {
-            position: relative;
-            height: 350px;
-        }
-        
-        .table-wrapper {
-            margin-top: 40px;
-            background: #f9f9f9;
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            overflow-x: auto;
-        }
-        
-        .table-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        tbody tr:hover {
-            background: #f0f0f0;
-        }
-        
-        tbody tr:nth-child(even) {
-            background: #fafafa;
-        }
-        
-        .category-name {
-            font-weight: 500;
-            color: #333;
-        }
-        
-        .amount {
-            text-align: right;
-            font-weight: 600;
-            color: #ef4444;
-        }
-        
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-        
-        @media (max-width: 1024px) {
-            .header {
-                flex-direction: column;
-            }
-            
-            .header-right {
-                flex: 1;
-                max-width: 100%;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Dashboard Finanzas</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f5f6fa;
+    margin: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    background: #2d3436;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.tabs {
+    margin-top: 20px;
+}
+
+.tab {
+    display: inline-block;
+    padding: 10px;
+    background: #dfe6e9;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: #0984e3;
+    color: white;
+}
+
+.cards {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    flex: 1;
+    padding: 20px;
+    color: white;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.ingresos { background: #27ae60; }
+.gastos { background: #e74c3c; }
+.balance { background: #2980b9; }
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+canvas {
+    margin-top: 30px;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <h1>💰 Dashboard Finanzas</h1>
-                <p>Resumen de ingresos y gastos por categoría</p>
-            </div>
-            <div class="header-right">
-                <h3>📋 Actualizar datos</h3>
-                <p>Selecciona en tu Sheet (Ctrl+A), copia (Ctrl+C) y pega aquí:</p>
-                <textarea id="pasteArea" placeholder="Pega aquí..."></textarea>
-                <button onclick="procesarDatos()">Actualizar</button>
-                <div class="success-message" id="successMsg">✅ Datos actualizados</div>
-            </div>
-        </div>
-        
-        <div class="month-tabs" id="monthTabs"></div>
-        <div class="metrics" id="metricsContainer"></div>
-        
-        <div class="charts-container">
-            <div class="chart-wrapper">
-                <div class="chart-title">📊 Ingresos vs Gastos</div>
-                <div class="chart-canvas">
-                    <canvas id="comparisonChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="chart-wrapper">
-                <div class="chart-title">📊 Gastos por Categoría</div>
-                <div class="chart-canvas">
-                    <canvas id="pieChart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <div class="table-title">📋 Detalle de Gastos</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Categoría</th>
-                        <th style="text-align: right;">Monto</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="2" class="no-data">Pega datos para ver el dashboard</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <script>
-        let rawData = [];
-        let months = [];
-        let currentMonth = null;
-        let charts = {};
-        
-        function cargarDatos() {
-            const saved = localStorage.getItem('dashboardData');
-            if (saved) {
-                rawData = JSON.parse(saved);
-                processData();
-                renderUI();
-                if (months.length > 0) selectMonth(months[0].name);
-            }
+
+<h1>Dashboard Finanzas</h1>
+
+<textarea id="inputData" placeholder="Pegá acá los datos del Google Sheet"></textarea>
+<br>
+<button onclick="procesar()">Actualizar</button>
+
+<div id="tabs" class="tabs"></div>
+
+<div class="cards">
+    <div class="card ingresos" id="ingresos"></div>
+    <div class="card gastos" id="gastos"></div>
+    <div class="card balance" id="balance"></div>
+</div>
+
+<canvas id="grafico"></canvas>
+
+<table id="tabla"></table>
+
+<script>
+let dataGlobal = [];
+let chart;
+
+function limpiarNumero(valor) {
+    if (!valor) return 0;
+    return parseFloat(valor.toString().replace(/\./g, "").replace(",", ".")) || 0;
+}
+
+function procesarTexto(texto) {
+    return texto.trim().split("\n").map(fila =>
+        fila.split("\t").map(c =>
+            c.replace(/\n/g, " ").replace(/"/g, "").trim()
+        )
+    );
+}
+
+function procesar() {
+    const texto = document.getElementById("inputData").value;
+    const data = procesarTexto(texto);
+    localStorage.setItem("data", JSON.stringify(data));
+    init(data);
+}
+
+function init(data) {
+    dataGlobal = data;
+
+    const meses = data[0].slice(1).map(m => m.replace(/\n/g, " ").trim());
+
+    const tabs = document.getElementById("tabs");
+    tabs.innerHTML = "";
+
+    meses.forEach((mes, i) => {
+        const tab = document.createElement("div");
+        tab.className = "tab";
+        tab.innerText = mes;
+
+        tab.onclick = () => {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            renderMes(i + 1);
+        };
+
+        tabs.appendChild(tab);
+    });
+
+    tabs.children[0].click();
+}
+
+function renderMes(index) {
+    let ingresos = 0;
+    let gastos = 0;
+    let categorias = [];
+
+    for (let i = 1; i < dataGlobal.length; i++) {
+        const nombre = dataGlobal[i][0];
+        const valor = limpiarNumero(dataGlobal[i][index]);
+
+        if (!nombre) continue;
+
+        if (nombre === "Ingresos") ingresos = valor;
+        else if (nombre === "Gastos") gastos = valor;
+        else if (nombre !== "TOTAL" && valor !== 0) {
+            categorias.push({ nombre, valor: Math.abs(valor) });
         }
-        
-        function procesarDatos() {
-            const texto = document.getElementById('pasteArea').value;
-            if (!texto.trim()) { alert('Pega los datos'); return; }
-            
-            rawData = texto.trim().split('\n').map(row => 
-                row.split('\t').map(c => { const n = parseFloat(c); return isNaN(n) ? c : n; })
-            );
-            
-            localStorage.setItem('dashboardData', JSON.stringify(rawData));
-            document.getElementById('successMsg').style.display = 'block';
-            setTimeout(() => document.getElementById('successMsg').style.display = 'none', 3000);
-            document.getElementById('pasteArea').value = '';
-            
-            processData();
-            renderUI();
-            if (months.length > 0) selectMonth(months[0].name);
+    }
+
+    categorias = categorias.sort((a,b) => b.valor - a.valor);
+
+    document.getElementById("ingresos").innerText = "Ingresos\n$" + ingresos.toLocaleString();
+    document.getElementById("gastos").innerText = "Gastos\n$" + gastos.toLocaleString();
+    document.getElementById("balance").innerText = "Balance\n$" + (ingresos + gastos).toLocaleString();
+
+    // tabla
+    const tabla = document.getElementById("tabla");
+    tabla.innerHTML = "";
+
+    categorias.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${c.nombre}</td><td>$${c.valor.toLocaleString()}</td>`;
+        tabla.appendChild(tr);
+    });
+
+    // gráfico
+    const ctx = document.getElementById("grafico");
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: categorias.map(c => c.nombre),
+            datasets: [{
+                label: "Gastos",
+                data: categorias.map(c => c.valor)
+            }]
         }
-        
-        function processData() {
-            let ingIdx = -1, gasIdx = -1;
-            for (let i = 0; i < rawData.length; i++) {
-                if (rawData[i][0] === 'Ingresos') ingIdx = i;
-                if (rawData[i][0] === 'Gastos') gasIdx = i;
-            }
-            
-            months = [];
-            for (let col = 1; col < rawData[0].length; col++) {
-                const h = rawData[0][col]?.toString().trim();
-                if (h) {
-                    const ing = rawData[ingIdx]?.[col] || 0;
-                    const gas = rawData[gasIdx]?.[col] || 0;
-                    if (ing > 0 || gas > 0) months.push({ name: h, col });
-                }
-            }
-        }
-        
-        function renderUI() {
-            document.getElementById('monthTabs').innerHTML = months
-                .map(m => `<button class="month-tab" onclick="selectMonth('${m.name}')">${m.name}</button>`).join('');
-        }
-        
-        function selectMonth(name) {
-            currentMonth = months.find(m => m.name === name);
-            document.querySelectorAll('.month-tab').forEach(b => 
-                b.classList.toggle('active', b.textContent.trim() === name)
-            );
-            renderDashboard();
-        }
-        
-        function renderDashboard() {
-            let ingIdx = rawData.findIndex(r => r[0] === 'Ingresos');
-            let gasIdx = rawData.findIndex(r => r[0] === 'Gastos');
-            const col = currentMonth.col;
-            const ing = rawData[ingIdx][col] || 0;
-            const gas = rawData[gasIdx][col] || 0;
-            const bal = ing - gas;
-            
-            const cats = [];
-            for (let i = gasIdx + 1; i < rawData.length; i++) {
-                const name = rawData[i][0];
-                const amt = rawData[i][col] || 0;
-                if (name && name.trim() && !['TOTAL', 'Ahorro', 'Deudas'].includes(name) && amt > 0) {
-                    cats.push({ name, amount: amt });
-                }
-            }
-            
-            renderMetrics(ing, gas, bal);
-            renderCharts(ing, gas, cats);
-            renderTable(cats);
-        }
-        
-        function renderMetrics(ing, gas, bal) {
-            document.getElementById('metricsContainer').innerHTML = `
-                <div class="metric-card ingresos"><div class="metric-label">💵 Ingresos</div><div class="metric-value">$${ing.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
-                <div class="metric-card gasto"><div class="metric-label">💸 Gastos</div><div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
-                <div class="metric-card ${bal >= 0 ? 'ingresos' : 'balance'}"><div class="metric-label">${bal >= 0 ? '✅' : '⚠️'} Balance</div><div class="metric-value">$${bal.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
-            `;
-        }
-        
-        function renderCharts(ing, gas, cats) {
-            Object.values(charts).forEach(c => c.destroy());
-            charts = {};
-            
-            charts.comp = new Chart(document.getElementById('comparisonChart'), {
-                type: 'bar',
-                data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ing, gas], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$' + v.toLocaleString('es-AR') } } } }
-            });
-            
-            const sorted = [...cats].sort((a, b) => b.amount - a.amount);
-            const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#f97316', '#14b8a6', '#d946ef'];
-            
-            charts.cat = new Chart(document.getElementById('pieChart'), {
-                type: 'bar',
-                data: { labels: sorted.map(c => c.name), datasets: [{ data: sorted.map(c => c.amount), backgroundColor: colors.slice(0, sorted.length), borderRadius: 6 }] },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => '$' + v.toLocaleString('es-AR') } } } }
-            });
-        }
-        
-        function renderTable(cats) {
-            const tbody = document.getElementById('tableBody');
-            if (cats.length === 0) { tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin datos</td></tr>'; return; }
-            tbody.innerHTML = cats.sort((a, b) => b.amount - a.amount).map(c => 
-                `<tr><td class="category-name">${c.name}</td><td class="amount">$${c.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`
-            ).join('');
-        }
-        
-        cargarDatos();
-    </script>
+    });
+}
+
+// cargar guardado
+const saved = localStorage.getItem("data");
+if (saved) {
+    init(JSON.parse(saved));
+}
+</script>
+
 </body>
 </html>
