@@ -352,23 +352,40 @@
             }
         }
         
-        function procesarDatos() {
-            const texto = document.getElementById('pasteArea').value;
-            if (!texto.trim()) { alert('Pega los datos'); return; }
-            
-            rawData = texto.trim().split('\n').map(row => 
-                row.split('\t').map(c => { const n = parseFloat(c); return isNaN(n) ? c : n; })
+function procesarDatos() {
+    const texto = document.getElementById('pasteArea').value;
+    if (!texto.trim()) { alert('Pega los datos'); return; }
+
+    rawData = texto.trim().split('\n').map(row =>
+        row.split('\t').map(c => {
+            const clean = c
+                .toString()
+                .replace(/\n/g, ' ')
+                .replace(/"/g, '')
+                .trim();
+
+            // convertir número correctamente
+            const num = parseFloat(
+                clean
+                    .replace(/\./g, '')
+                    .replace(',', '.')
             );
-            
-            localStorage.setItem('dashboardData', JSON.stringify(rawData));
-            document.getElementById('successMsg').style.display = 'block';
-            setTimeout(() => document.getElementById('successMsg').style.display = 'none', 3000);
-            document.getElementById('pasteArea').value = '';
-            
-            processData();
-            renderUI();
-            if (months.length > 0) selectMonth(months[0].name);
-        }
+
+            return isNaN(num) ? clean : num;
+        })
+    );
+
+    localStorage.setItem('dashboardData', JSON.stringify(rawData));
+
+    document.getElementById('successMsg').style.display = 'block';
+    setTimeout(() => document.getElementById('successMsg').style.display = 'none', 3000);
+
+    document.getElementById('pasteArea').value = '';
+
+    processData();
+    renderUI();
+    if (months.length > 0) selectMonth(months[0].name);
+}
         
         function processData() {
             let ingIdx = -1, gasIdx = -1;
@@ -409,14 +426,24 @@
             const gas = rawData[gasIdx][col] || 0;
             const bal = ing - gas;
             
-            const cats = [];
-            for (let i = gasIdx + 1; i < rawData.length; i++) {
-                const name = rawData[i][0];
-                const amt = rawData[i][col] || 0;
-                if (name && name.trim() && !['TOTAL', 'Ahorro', 'Deudas'].includes(name) && amt > 0) {
-                    cats.push({ name, amount: amt });
-                }
-            }
+const map = {};
+
+for (let i = gasIdx + 1; i < rawData.length; i++) {
+    const name = rawData[i][0];
+    const amt = rawData[i][col] || 0;
+
+    if (!name || !name.trim()) continue;
+    if (['TOTAL', 'Ahorro', 'Deudas'].includes(name)) continue;
+    if (amt <= 0) continue;
+
+    if (!map[name]) map[name] = 0;
+    map[name] += amt;
+}
+
+const cats = Object.keys(map).map(k => ({
+    name: k,
+    amount: map[k]
+}));
             
             renderMetrics(ing, gas, bal);
             renderCharts(ing, gas, cats);
