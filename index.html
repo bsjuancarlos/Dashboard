@@ -277,6 +277,222 @@
             padding: 40px;
             color: #999;
         }
+        
+        @media (max-width: 1024px) {
+            .header {
+                flex-direction: column;
+            }
+            
+            .header-right {
+                width: 100%;
+                flex: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+                border-radius: 12px;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .header-left h1 {
+                font-size: 20px;
+                margin-bottom: 3px;
+            }
+            
+            .header-left p {
+                font-size: 12px;
+            }
+            
+            .header-right {
+                width: 100%;
+                padding: 12px;
+                border-radius: 10px;
+                flex: none;
+            }
+            
+            .header-right h3 {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+            
+            .header-right p {
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+            
+            .header-right textarea {
+                height: 70px;
+                font-size: 10px;
+                padding: 8px;
+                border-radius: 4px;
+            }
+            
+            .header-right button {
+                margin-top: 8px;
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            .success-message, .error-message {
+                font-size: 11px;
+                padding: 8px;
+                margin-top: 8px;
+            }
+            
+            .month-tabs {
+                gap: 4px;
+                padding-bottom: 8px;
+                margin-bottom: 15px;
+            }
+            
+            .month-tab {
+                padding: 6px 10px;
+                font-size: 11px;
+                border-radius: 4px;
+            }
+            
+            .metrics {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+            
+            .metric-card {
+                padding: 15px;
+                border-radius: 10px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .metric-value {
+                font-size: 20px;
+                margin-top: 5px;
+            }
+            
+            .metric-label {
+                font-size: 10px;
+                margin-bottom: 5px;
+                letter-spacing: 0.3px;
+            }
+            
+            .charts-and-table {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 0;
+            }
+            
+            .chart-wrapper {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .chart-canvas {
+                height: 200px;
+                margin-bottom: 0;
+            }
+            
+            .chart-title {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+            
+            .table-wrapper {
+                padding: 12px;
+                border-radius: 10px;
+            }
+            
+            .table-title {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+            
+            table {
+                font-size: 10px;
+            }
+            
+            thead {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            
+            th {
+                padding: 7px 6px;
+                font-size: 10px;
+            }
+            
+            td {
+                padding: 6px 5px;
+                font-size: 10px;
+            }
+            
+            .category-name {
+                font-weight: 500;
+                word-break: break-word;
+            }
+            
+            .amount {
+                text-align: right;
+                font-size: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            .container {
+                padding: 12px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+            
+            .header {
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .header-left h1 {
+                font-size: 18px;
+            }
+            
+            .header-right {
+                padding: 10px;
+                border-radius: 8px;
+            }
+            
+            .month-tabs {
+                gap: 3px;
+                padding-bottom: 6px;
+                margin-bottom: 12px;
+            }
+            
+            .month-tab {
+                padding: 5px 9px;
+                font-size: 10px;
+            }
+            
+            .metrics {
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+            
+            .metric-card {
+                padding: 12px;
+            }
+            
+            .metric-value {
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -379,14 +595,12 @@
                 const filas = texto.trim().split('\n');
                 rawData = filas.map(fila => {
                     let celdas = fila.split('\t');
-                    // Remover primer celda vacía si existe
                     if (celdas[0].trim() === '') {
                         celdas = celdas.slice(1);
                     }
                     return celdas;
                 });
                 
-                // Filtrar filas vacías
                 rawData = rawData.filter(row => row.some(cell => cell.trim() !== ''));
                 
                 localStorage.setItem('dashboardData', JSON.stringify(rawData));
@@ -423,11 +637,9 @@
             const ingresosRow = rawData[ingIdx];
             const gastosRow = rawData[gasIdx];
             
-            // Lista de meses en orden
             const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
             
-            // Primero: extraer todos los nombres de meses del header, en orden
             const foundMonths = [];
             for (let i = 0; i < ingIdx; i++) {
                 for (let col = 0; col < rawData[i].length; col++) {
@@ -435,25 +647,19 @@
                     for (let m of monthNames) {
                         if (cell.includes(m) && !foundMonths.find(x => x === m)) {
                             foundMonths.push(m);
-                            console.log(`Encontrado mes: ${m}`);
                         }
                     }
                 }
             }
             
-            console.log('Meses encontrados en header:', foundMonths);
-            
-            // Ahora recorrer columnas de datos
             let monthIndex = 0;
             for (let col = 0; col < Math.max(ingresosRow.length, gastosRow.length); col++) {
                 const ing = parseNumber(ingresosRow[col] || '');
                 const gas = parseNumber(gastosRow[col] || '');
                 
-                // Si tiene ingresos o gastos, es una columna de mes válida
                 if (ing !== 0 || gas !== 0) {
                     let monthName = '';
                     
-                    // Usar el mes encontrado en orden
                     if (monthIndex < foundMonths.length) {
                         monthName = foundMonths[monthIndex] + ' 2026';
                     } else {
@@ -461,12 +667,9 @@
                     }
                     
                     months.push({ name: monthName, col });
-                    console.log(`Col ${col}: "${monthName}" | Ing: ${ing} | Gas: ${gas}`);
                     monthIndex++;
                 }
             }
-            
-            console.log('Meses finales:', months);
         }
         
         function renderUI() {
@@ -484,8 +687,8 @@
         }
         
         function renderDashboard() {
-            let ingIdx = rawData.findIndex(r => r[0].trim() === 'Ingresos');
-            let gasIdx = rawData.findIndex(r => r[0].trim() === 'Gastos');
+            let ingIdx = rawData.findIndex(r => String(r[0]).trim() === 'Ingresos');
+            let gasIdx = rawData.findIndex(r => String(r[0]).trim() === 'Gastos');
             
             if (ingIdx === -1 || gasIdx === -1) return;
             
