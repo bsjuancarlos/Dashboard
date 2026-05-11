@@ -397,7 +397,7 @@
             }
             
             .chart-canvas {
-                height: 200px;
+                height: 280px;
                 margin-bottom: 0;
             }
             
@@ -702,7 +702,8 @@
                 const name = rawData[i][0].trim();
                 const amt = Math.abs(parseNumber(rawData[i][col]));
                 
-                if (name && !['TOTAL', 'Ahorro', 'Deudas', 'Carlos', 'Venezuela', ''].includes(name) && amt > 0) {
+                // Solo excluir filas completamente vacías y las que son totales/resumen
+                if (name && !['TOTAL', 'Ahorro', 'Deudas', 'Carlos', 'Venezuela', 'Otros'].includes(name) && amt > 0) {
                     cats.push({ name, amount: amt });
                 }
             }
@@ -749,11 +750,23 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return '$' + value.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                                }
+                            }
+                        }
+                    }, 
                     scales: { 
                         y: { 
                             beginAtZero: true,
-                            ticks: { callback: v => '$' + v.toLocaleString('es-AR') } 
+                            ticks: { 
+                                callback: v => '$' + v.toLocaleString('es-AR')
+                            } 
                         } 
                     } 
                 }
@@ -776,11 +789,30 @@
                     indexAxis: 'y', 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.x;
+                                    return '$' + value.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                                }
+                            }
+                        }
+                    },
                     scales: { 
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 768 ? 9 : 12
+                                }
+                            }
+                        },
                         x: { 
                             beginAtZero: true,
-                            ticks: { callback: v => '$' + v.toLocaleString('es-AR') } 
+                            ticks: { 
+                                callback: v => '$' + v.toLocaleString('es-AR')
+                            } 
                         } 
                     } 
                 }
