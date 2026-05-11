@@ -172,6 +172,10 @@
             background: #f59e0b;
         }
         
+        .metric-card.balance-positivo {
+            background: #3b82f6;
+        }
+        
         .metric-label {
             font-size: 12px;
             opacity: 0.9;
@@ -185,9 +189,9 @@
             font-weight: 700;
         }
         
-        .charts-container {
+        .charts-and-table {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
         }
@@ -209,29 +213,27 @@
         
         .chart-canvas {
             position: relative;
-            height: 350px;
+            height: 300px;
         }
         
         .table-wrapper {
-            margin-top: 40px;
             background: #f9f9f9;
             padding: 25px;
             border-radius: 12px;
             border: 1px solid #e0e0e0;
-            overflow-x: auto;
         }
         
         .table-title {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #333;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         thead {
@@ -240,13 +242,13 @@
         }
         
         th {
-            padding: 15px;
+            padding: 10px 8px;
             text-align: left;
             font-weight: 600;
         }
         
         td {
-            padding: 12px 15px;
+            padding: 8px;
             border-bottom: 1px solid #e0e0e0;
         }
         
@@ -267,6 +269,7 @@
             text-align: right;
             font-weight: 600;
             color: #ef4444;
+            white-space: nowrap;
         }
         
         .no-data {
@@ -296,7 +299,7 @@
         <div class="month-tabs" id="monthTabs"></div>
         <div class="metrics" id="metricsContainer"></div>
         
-        <div class="charts-container">
+        <div class="charts-and-table">
             <div class="chart-wrapper">
                 <div class="chart-title">📊 Ingresos vs Gastos</div>
                 <div class="chart-canvas">
@@ -310,21 +313,21 @@
                     <canvas id="barChart"></canvas>
                 </div>
             </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <div class="table-title">📋 Detalle de Gastos</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Categoría</th>
-                        <th style="text-align: right;">Monto</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="2" class="no-data">Pega datos para ver el dashboard</td></tr>
-                </tbody>
-            </table>
+            
+            <div class="table-wrapper">
+                <div class="table-title">📋 Gastos</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="2" class="no-data">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     
@@ -507,6 +510,7 @@
         }
         
         function renderMetrics(ing, gas, bal) {
+            const balanceClass = bal >= 0 ? 'balance-positivo' : 'balance';
             document.getElementById('metricsContainer').innerHTML = `
                 <div class="metric-card ingresos">
                     <div class="metric-label">💵 Ingresos</div>
@@ -516,7 +520,7 @@
                     <div class="metric-label">💸 Gastos</div>
                     <div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
                 </div>
-                <div class="metric-card ${bal >= 0 ? 'ingresos' : 'balance'}">
+                <div class="metric-card ${balanceClass}">
                     <div class="metric-label">${bal >= 0 ? '✅' : '⚠️'} Balance</div>
                     <div class="metric-value">$${bal.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
                 </div>
