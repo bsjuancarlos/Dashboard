@@ -37,15 +37,17 @@
         }
         
         .header-left h1 {
-            font-size: 32px;
+            font-size: 40px;
             color: #333;
-            font-weight: 700;
-            margin-bottom: 5px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
         
         .header-left p {
-            color: #666;
-            font-size: 14px;
+            color: #888;
+            font-size: 15px;
+            font-weight: 500;
         }
         
         .header-right {
@@ -144,6 +146,14 @@
             border-bottom-color: #667eea;
         }
         
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         .metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -177,11 +187,12 @@
         }
         
         .metric-label {
-            font-size: 12px;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            font-weight: 600;
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .metric-value {
@@ -272,10 +283,82 @@
             white-space: nowrap;
         }
         
+        .balance-section {
+            display: block;
+        }
+        
+        .balance-section .metric-card {
+            width: 100%;
+        }
+        
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .column-income,
+        .column-expense {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        #tableBody tr td:last-child {
+            color: #10b981;
+            font-weight: 700;
+        }
+        
+        #expenseTableBody tr td:last-child {
+            color: #ef4444;
+            font-weight: 700;
+        }
+        
         .no-data {
             text-align: center;
             padding: 40px;
             color: #999;
+        }
+        
+        .trends-grid {
+            display: none;
+        }
+        
+        .trend-metric {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .trend-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .trend-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .trend-change {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .trend-positive {
+            color: #10b981;
+        }
+        
+        .trend-negative {
+            color: #ef4444;
         }
         
         @media (max-width: 1024px) {
@@ -391,6 +474,24 @@
                 margin-bottom: 0;
             }
             
+            .monthly-layout {
+                gap: 15px;
+            }
+            
+            .balance-section {
+                justify-content: center;
+            }
+            
+            .two-column-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .column-income,
+            .column-expense {
+                gap: 15px;
+            }
+            
             .chart-wrapper {
                 padding: 15px;
                 border-radius: 10px;
@@ -442,6 +543,30 @@
             .amount {
                 text-align: right;
                 font-size: 10px;
+            }
+            
+            .trends-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .trend-metric {
+                padding: 15px;
+            }
+            
+            .trend-label {
+                font-size: 12px;
+                margin-bottom: 8px;
+            }
+            
+            .trend-value {
+                font-size: 18px;
+                margin-bottom: 5px;
+            }
+            
+            .trend-change {
+                font-size: 12px;
             }
         }
         
@@ -502,48 +627,104 @@
                 <h1>💰 Dashboard Finanzas</h1>
                 <p>Resumen de ingresos y gastos</p>
             </div>
-            <div class="header-right">
-                <h3>📋 Actualizar datos</h3>
-                <p>Ctrl+A en tu Sheet, Ctrl+C, pega aquí:</p>
-                <textarea id="pasteArea" placeholder="Pega aquí..."></textarea>
-                <button onclick="procesarDatos()">Actualizar</button>
-                <div class="success-message" id="successMsg">✅ Datos actualizados</div>
-                <div class="error-message" id="errorMsg"></div>
-            </div>
         </div>
         
         <div class="month-tabs" id="monthTabs"></div>
-        <div class="metrics" id="metricsContainer"></div>
         
-        <div class="charts-and-table">
-            <div class="chart-wrapper">
-                <div class="chart-title">📊 Ingresos vs Gastos</div>
-                <div class="chart-canvas">
-                    <canvas id="comparisonChart"></canvas>
+        <!-- Contenido Inicio -->
+        <div class="tab-content active" id="inicioTab">
+            <div class="trends-grid" id="trendsContainer"></div>
+            <div class="charts-and-table">
+                <div class="chart-wrapper">
+                    <div class="chart-title">📈 Ingresos y Gastos (Tendencia)</div>
+                    <div class="chart-canvas">
+                        <canvas id="trendsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="chart-title">📊 Ingresos por Categoría (Comparativa)</div>
+                    <div class="chart-canvas">
+                        <canvas id="categoryTrendsChart"></canvas>
+                    </div>
                 </div>
             </div>
-            
-            <div class="chart-wrapper">
-                <div class="chart-title">📊 Gastos por Categoría</div>
-                <div class="chart-canvas">
-                    <canvas id="barChart"></canvas>
+            <div class="charts-and-table">
+                <div class="chart-wrapper">
+                    <div class="chart-title">💸 Gastos por Categoría (Comparativa)</div>
+                    <div class="chart-canvas">
+                        <canvas id="expenseCategoryChart"></canvas>
+                    </div>
                 </div>
             </div>
-            
-            <div class="table-wrapper">
-                <div class="table-title">📋 Gastos</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Categoría</th>
-                            <th style="text-align: right;">Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="2" class="no-data">Cargando...</td></tr>
-                    </tbody>
-                </table>
+        </div>
+        
+        <!-- Contenido Mes -->
+        <div class="tab-content" id="monthlyTab">
+            <div class="two-column-layout">
+                <!-- COLUMNA INGRESOS -->
+                <div class="column-income">
+                    <div id="metricIngresos"></div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">💵 Ingresos por Categoría</div>
+                        <div class="chart-canvas">
+                            <canvas id="incomeChartPie"></canvas>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <div class="table-title">💵 Detalle de Ingresos</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th style="text-align: right;">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="2" class="no-data">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="balance-section">
+                        <div id="metricsContainer"></div>
+                    </div>
+                </div>
+                
+                <!-- COLUMNA GASTOS -->
+                <div class="column-expense">
+                    <div id="metricGastos"></div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">💸 Gastos por Categoría</div>
+                        <div class="chart-canvas">
+                            <canvas id="expenseChartBar"></canvas>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <div class="table-title">💸 Detalle de Gastos</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th style="text-align: right;">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody">
+                                <tr><td colspan="2" class="no-data">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
+    
+    <div class="container" style="margin-top: 20px;">
+        <div class="header-right">
+            <h3>📋 Actualizar datos</h3>
+            <p>Ctrl+A en tu Sheet, Ctrl+C, pega aquí:</p>
+            <textarea id="pasteArea" placeholder="Pega aquí..."></textarea>
+            <button onclick="procesarDatos()">Actualizar</button>
+            <div class="success-message" id="successMsg">✅ Datos actualizados</div>
+            <div class="error-message" id="errorMsg"></div>
         </div>
     </div>
     
@@ -570,7 +751,7 @@
                     rawData = JSON.parse(saved);
                     processData();
                     renderUI();
-                    if (months.length > 0) selectMonth(months[0].name);
+                    renderTrendsTab();
                 } catch (e) {
                     console.error('Error cargando datos:', e);
                 }
@@ -610,7 +791,7 @@
                 
                 processData();
                 renderUI();
-                if (months.length > 0) selectMonth(months[0].name);
+                renderTrendsTab();
                 
             } catch (e) {
                 errorMsg.textContent = '❌ Error: ' + e.message;
@@ -673,17 +854,268 @@
         }
         
         function renderUI() {
-            document.getElementById('monthTabs').innerHTML = months
-                .map(m => `<button class="month-tab" onclick="selectMonth('${m.name}')">${m.name}</button>`).join('');
+            const tabs = ['📊 Inicio', ...months.map(m => m.name)];
+            document.getElementById('monthTabs').innerHTML = tabs
+                .map((name, idx) => {
+                    const isInicio = idx === 0;
+                    const monthName = isInicio ? 'Inicio' : name;
+                    return `<button class="month-tab ${isInicio ? 'active' : ''}" onclick="selectTab('${idx === 0 ? 'inicio' : monthName}')">${name}</button>`;
+                }).join('');
         }
         
-        function selectMonth(name) {
-            currentMonth = months.find(m => m.name === name);
-            if (!currentMonth) return;
-            document.querySelectorAll('.month-tab').forEach(b => 
-                b.classList.toggle('active', b.textContent.trim() === name)
-            );
-            renderDashboard();
+        function selectTab(tab) {
+            document.querySelectorAll('.month-tab').forEach(b => b.classList.remove('active'));
+            
+            if (tab === 'inicio') {
+                document.getElementById('inicioTab').classList.add('active');
+                document.getElementById('monthlyTab').classList.remove('active');
+                document.querySelector(`[onclick="selectTab('inicio')"]`).classList.add('active');
+                renderTrendsTab();
+            } else {
+                document.getElementById('inicioTab').classList.remove('active');
+                document.getElementById('monthlyTab').classList.add('active');
+                document.querySelector(`[onclick="selectTab('${tab}')"]`).classList.add('active');
+                currentMonth = months.find(m => m.name === tab);
+                if (currentMonth) renderDashboard();
+            }
+        }
+        
+        function getAllData() {
+            let ingIdx = rawData.findIndex(r => String(r[0]).trim() === 'Ingresos');
+            let gasIdx = rawData.findIndex(r => String(r[0]).trim() === 'Gastos');
+            
+            if (ingIdx === -1 || gasIdx === -1) return { monthsData: [], incomeCategoryData: {}, expenseCategoryData: {} };
+            
+            const monthsData = [];
+            const incomeCategoryData = {};
+            const expenseCategoryData = {};
+            
+            for (const month of months) {
+                const col = month.col;
+                const ing = parseNumber(rawData[ingIdx][col]);
+                const gas = Math.abs(parseNumber(rawData[gasIdx][col]));
+                
+                monthsData.push({ name: month.name, ing, gas });
+                
+                // Procesar categorías de ingresos (entre Ingresos y Gastos)
+                for (let i = ingIdx + 1; i < gasIdx; i++) {
+                    const name = rawData[i][0].trim();
+                    const amt = parseNumber(rawData[i][col]);
+                    
+                    if (name && !['Otros', 'TOTAL'].includes(name) && amt > 0) {
+                        if (!incomeCategoryData[name]) incomeCategoryData[name] = {};
+                        incomeCategoryData[name][month.name] = amt;
+                    }
+                }
+                
+                // Procesar categorías de gastos (después de Gastos)
+                for (let i = gasIdx + 1; i < rawData.length; i++) {
+                    const name = rawData[i][0].trim();
+                    const amt = Math.abs(parseNumber(rawData[i][col]));
+                    
+                    if (name && !['TOTAL', 'Ahorro', 'Deudas', 'Carlos', 'Venezuela', 'Otros'].includes(name) && amt > 0) {
+                        if (!expenseCategoryData[name]) expenseCategoryData[name] = {};
+                        expenseCategoryData[name][month.name] = amt;
+                    }
+                }
+            }
+            
+            return { monthsData, incomeCategoryData, expenseCategoryData };
+        }
+        
+        function renderTrendsTab() {
+            Object.values(charts).forEach(c => {
+                try { c.destroy(); } catch(e) {}
+            });
+            charts = {};
+            
+            const { monthsData, incomeCategoryData, expenseCategoryData } = getAllData();
+            
+            if (monthsData.length === 0) {
+                document.getElementById('trendsContainer').innerHTML = '<div class="no-data">Sin datos para mostrar tendencias</div>';
+                return;
+            }
+            
+            // Limpiar el contenedor de tendencias
+            document.getElementById('trendsContainer').innerHTML = '';
+            
+            // Gráfico de tendencias principales
+            charts.trends = new Chart(document.getElementById('trendsChart'), {
+                type: 'line',
+                data: {
+                    labels: monthsData.map(m => m.name),
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: monthsData.map(m => m.ing),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#10b981',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Gastos',
+                            data: monthsData.map(m => m.gas),
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#ef4444',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return context.dataset.label + ': $' + value.toLocaleString('es-AR', {maximumFractionDigits: 0});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: v => '$' + v.toLocaleString('es-AR')
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de ingresos por categoría - LÍNEAS
+            const topIncomeCategories = Object.entries(incomeCategoryData)
+                .map(([name, months]) => ({
+                    name,
+                    total: Object.values(months).reduce((a, b) => a + b, 0)
+                }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 6);
+            
+            const categoryLabels = monthsData.map(m => m.name);
+            const incomeDatasets = topIncomeCategories.map((cat, idx) => {
+                const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
+                return {
+                    label: cat.name,
+                    data: categoryLabels.map(monthName => incomeCategoryData[cat.name][monthName] || 0),
+                    borderColor: colors[idx],
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: colors[idx],
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    fill: false
+                };
+            });
+            
+            if (incomeDatasets.length > 0) {
+                charts.incomeCategories = new Chart(document.getElementById('categoryTrendsChart'), {
+                    type: 'line',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: incomeDatasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed.y;
+                                        return context.dataset.label + ': $' + value.toLocaleString('es-AR', {maximumFractionDigits: 0});
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: v => '$' + v.toLocaleString('es-AR')
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de gastos por categoría - LÍNEAS
+            const topExpenseCategories = Object.entries(expenseCategoryData)
+                .map(([name, months]) => ({
+                    name,
+                    total: Object.values(months).reduce((a, b) => a + b, 0)
+                }))
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 6);
+            
+            const expenseDatasets = topExpenseCategories.map((cat, idx) => {
+                const colors = ['#ef4444', '#f97316', '#ec4899', '#8b5cf6', '#3b82f6', '#06b6d4'];
+                return {
+                    label: cat.name,
+                    data: categoryLabels.map(monthName => expenseCategoryData[cat.name][monthName] || 0),
+                    borderColor: colors[idx],
+                    backgroundColor: 'transparent',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: colors[idx],
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    fill: false
+                };
+            });
+            
+            if (expenseDatasets.length > 0) {
+                charts.expenseCategories = new Chart(document.getElementById('expenseCategoryChart'), {
+                    type: 'line',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: expenseDatasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed.y;
+                                        return context.dataset.label + ': $' + value.toLocaleString('es-AR', {maximumFractionDigits: 0});
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: v => '$' + v.toLocaleString('es-AR')
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
         
         function renderDashboard() {
@@ -697,91 +1129,111 @@
             const gas = Math.abs(parseNumber(rawData[gasIdx][col]));
             const bal = ing - gas;
             
-            const cats = [];
+            // Categorías de ingresos
+            const incomeCategories = [];
+            for (let i = ingIdx + 1; i < gasIdx; i++) {
+                const name = rawData[i][0].trim();
+                const amt = parseNumber(rawData[i][col]);
+                
+                if (name && !['Otros', 'TOTAL'].includes(name) && amt > 0) {
+                    incomeCategories.push({ name, amount: amt });
+                }
+            }
+            
+            // Categorías de gastos
+            const expenseCategories = [];
             for (let i = gasIdx + 1; i < rawData.length; i++) {
                 const name = rawData[i][0].trim();
                 const amt = Math.abs(parseNumber(rawData[i][col]));
                 
-                // Solo excluir filas completamente vacías y las que son totales/resumen
                 if (name && !['TOTAL', 'Ahorro', 'Deudas', 'Carlos', 'Venezuela', 'Otros'].includes(name) && amt > 0) {
-                    cats.push({ name, amount: amt });
+                    expenseCategories.push({ name, amount: amt });
                 }
             }
             
             renderMetrics(ing, gas, bal);
-            renderCharts(ing, gas, cats);
-            renderTable(cats);
+            renderMonthlyCharts(ing, gas, incomeCategories, expenseCategories);
+            renderIncomeTables(incomeCategories);
+            renderExpenseTables(expenseCategories);
         }
         
         function renderMetrics(ing, gas, bal) {
             const balanceClass = bal >= 0 ? 'balance-positivo' : 'balance';
+            
+            // Tarjeta de Balance (arriba centrado)
             document.getElementById('metricsContainer').innerHTML = `
-                <div class="metric-card ingresos">
-                    <div class="metric-label">💵 Ingresos</div>
-                    <div class="metric-value">$${ing.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
-                </div>
-                <div class="metric-card gasto">
-                    <div class="metric-label">💸 Gastos</div>
-                    <div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
-                </div>
                 <div class="metric-card ${balanceClass}">
                     <div class="metric-label">${bal >= 0 ? '✅' : '⚠️'} Balance</div>
                     <div class="metric-value">$${bal.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
                 </div>
             `;
+            
+            // Tarjetas de Ingresos y Gastos (debajo)
+            document.getElementById('metricIngresos').innerHTML = `
+                <div class="metric-card ingresos">
+                    <div class="metric-label">💵 Ingresos</div>
+                    <div class="metric-value">$${ing.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                </div>
+            `;
+            
+            document.getElementById('metricGastos').innerHTML = `
+                <div class="metric-card gasto">
+                    <div class="metric-label">💸 Gastos</div>
+                    <div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                </div>
+            `;
         }
         
-        function renderCharts(ing, gas, cats) {
+        function renderMonthlyCharts(ing, gas, incomeCategories, expenseCategories) {
             Object.values(charts).forEach(c => {
                 try { c.destroy(); } catch(e) {}
             });
             charts = {};
             
-            charts.comp = new Chart(document.getElementById('comparisonChart'), {
-                type: 'bar',
+            // Gráfico Ingresos por Categoría - TORTA
+            const sortedIncome = [...incomeCategories].sort((a, b) => b.amount - a.amount);
+            const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#f97316', '#14b8a6', '#d946ef'];
+            
+            charts.incomePie = new Chart(document.getElementById('incomeChartPie'), {
+                type: 'doughnut',
                 data: { 
-                    labels: ['Ingresos', 'Gastos'], 
+                    labels: sortedIncome.map(c => c.name), 
                     datasets: [{ 
-                        data: [ing, gas], 
-                        backgroundColor: ['#10b981', '#ef4444'], 
-                        borderRadius: 8 
+                        data: sortedIncome.map(c => c.amount), 
+                        backgroundColor: colors.slice(0, sortedIncome.length),
+                        borderColor: '#fff',
+                        borderWidth: 2
                     }] 
                 },
                 options: { 
                     responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { display: false },
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const value = context.parsed.y;
-                                    return '$' + value.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percent = ((value / total) * 100).toFixed(1);
+                                    return context.label + ': $' + value.toLocaleString('es-AR', {maximumFractionDigits: 0}) + ' (' + percent + '%)';
                                 }
                             }
                         }
-                    }, 
-                    scales: { 
-                        y: { 
-                            beginAtZero: true,
-                            ticks: { 
-                                callback: v => '$' + v.toLocaleString('es-AR')
-                            } 
-                        } 
-                    } 
+                    }
                 }
             });
             
-            const sorted = [...cats].sort((a, b) => b.amount - a.amount);
-            const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#f97316', '#14b8a6', '#d946ef'];
+            // Gráfico Gastos por Categoría - BARRAS
+            const sortedExpense = [...expenseCategories].sort((a, b) => b.amount - a.amount);
             
-            charts.bar = new Chart(document.getElementById('barChart'), {
+            charts.expenseBar = new Chart(document.getElementById('expenseChartBar'), {
                 type: 'bar',
                 data: { 
-                    labels: sorted.map(c => c.name), 
+                    labels: sortedExpense.map(c => c.name), 
                     datasets: [{ 
-                        data: sorted.map(c => c.amount), 
-                        backgroundColor: colors.slice(0, sorted.length), 
+                        data: sortedExpense.map(c => c.amount), 
+                        backgroundColor: colors.slice(0, sortedExpense.length), 
                         borderRadius: 6 
                     }] 
                 },
@@ -819,8 +1271,19 @@
             });
         }
         
-        function renderTable(cats) {
+        function renderIncomeTables(cats) {
             const tbody = document.getElementById('tableBody');
+            if (cats.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin datos</td></tr>'; 
+                return; 
+            }
+            tbody.innerHTML = cats.sort((a, b) => b.amount - a.amount).map(c => 
+                `<tr><td class="category-name">${c.name}</td><td class="amount">$${c.amount.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td></tr>`
+            ).join('');
+        }
+        
+        function renderExpenseTables(cats) {
+            const tbody = document.getElementById('expenseTableBody');
             if (cats.length === 0) { 
                 tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin datos</td></tr>'; 
                 return; 
