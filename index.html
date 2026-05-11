@@ -96,14 +96,22 @@
             background: #5568d3;
         }
         
-        .success-message {
+        .success-message, .error-message {
             margin-top: 10px;
             padding: 10px;
-            background: #d4edda;
-            color: #155724;
             border-radius: 6px;
             font-size: 12px;
             display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
         }
         
         .month-tabs {
@@ -150,11 +158,6 @@
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
         }
         
         .metric-card.ingresos {
@@ -175,7 +178,6 @@
             margin-bottom: 8px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .metric-value {
@@ -272,17 +274,6 @@
             padding: 40px;
             color: #999;
         }
-        
-        @media (max-width: 1024px) {
-            .header {
-                flex-direction: column;
-            }
-            
-            .header-right {
-                flex: 1;
-                max-width: 100%;
-            }
-        }
     </style>
 </head>
 <body>
@@ -290,14 +281,15 @@
         <div class="header">
             <div class="header-left">
                 <h1>💰 Dashboard Finanzas</h1>
-                <p>Resumen de ingresos y gastos por categoría</p>
+                <p>Resumen de ingresos y gastos</p>
             </div>
             <div class="header-right">
                 <h3>📋 Actualizar datos</h3>
-                <p>Selecciona en tu Sheet (Ctrl+A), copia (Ctrl+C) y pega aquí:</p>
+                <p>Ctrl+A en tu Sheet, Ctrl+C, pega aquí:</p>
                 <textarea id="pasteArea" placeholder="Pega aquí..."></textarea>
                 <button onclick="procesarDatos()">Actualizar</button>
                 <div class="success-message" id="successMsg">✅ Datos actualizados</div>
+                <div class="error-message" id="errorMsg"></div>
             </div>
         </div>
         
@@ -315,7 +307,7 @@
             <div class="chart-wrapper">
                 <div class="chart-title">📊 Gastos por Categoría</div>
                 <div class="chart-canvas">
-                    <canvas id="pieChart"></canvas>
+                    <canvas id="barChart"></canvas>
                 </div>
             </div>
         </div>
@@ -342,62 +334,136 @@
         let currentMonth = null;
         let charts = {};
         
+        function parseNumber(str) {
+            if (!str) return 0;
+            str = String(str).trim();
+            str = str.replace(/"/g, '').replace(/\n/g, '').replace(/\s+/g, '');
+            if (str === '-0' || str === '0' || str === '') return 0;
+            str = str.replace(/\./g, '');
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
+        
         function cargarDatos() {
             const saved = localStorage.getItem('dashboardData');
             if (saved) {
-                rawData = JSON.parse(saved);
-                processData();
-                renderUI();
-                if (months.length > 0) selectMonth(months[0].name);
+                try {
+                    rawData = JSON.parse(saved);
+                    processData();
+                    renderUI();
+                    if (months.length > 0) selectMonth(months[0].name);
+                } catch (e) {
+                    console.error('Error cargando datos:', e);
+                }
             }
         }
         
         function procesarDatos() {
             const texto = document.getElementById('pasteArea').value;
-            if (!texto.trim()) { alert('Pega los datos'); return; }
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
             
-            rawData = texto.trim().split('\n').map(row => 
-                row.split('\t').map(c => {
-                    // Limpiar saltos de línea, comillas y espacios extras
-                    let clean = c.replace(/\n/g, ' ').trim().replace(/\s+/g, ' ').replace(/"/g, '');
-                    
-                    // Si tiene puntos y es número: remover puntos (son separadores de miles)
-                    if (clean.match(/^-?\d+(\.\d{3})*$/)) {
-                        clean = clean.replace(/\./g, '');
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            if (!texto.trim()) { 
+                errorMsg.textContent = '❌ Pega los datos';
+                errorMsg.style.display = 'block';
+                return; 
+            }
+            
+            try {
+                const filas = texto.trim().split('\n');
+                rawData = filas.map(fila => {
+                    let celdas = fila.split('\t');
+                    // Remover primer celda vacía si existe
+                    if (celdas[0].trim() === '') {
+                        celdas = celdas.slice(1);
                     }
-                    
-                    // Intentar convertir a número
-                    const n = parseFloat(clean);
-                    return isNaN(n) ? clean : n;
-                })
-            );
-            
-            localStorage.setItem('dashboardData', JSON.stringify(rawData));
-            document.getElementById('successMsg').style.display = 'block';
-            setTimeout(() => document.getElementById('successMsg').style.display = 'none', 3000);
-            document.getElementById('pasteArea').value = '';
-            
-            processData();
-            renderUI();
-            if (months.length > 0) selectMonth(months[0].name);
+                    return celdas;
+                });
+                
+                // Filtrar filas vacías
+                rawData = rawData.filter(row => row.some(cell => cell.trim() !== ''));
+                
+                localStorage.setItem('dashboardData', JSON.stringify(rawData));
+                successMsg.style.display = 'block';
+                setTimeout(() => successMsg.style.display = 'none', 3000);
+                document.getElementById('pasteArea').value = '';
+                
+                processData();
+                renderUI();
+                if (months.length > 0) selectMonth(months[0].name);
+                
+            } catch (e) {
+                errorMsg.textContent = '❌ Error: ' + e.message;
+                errorMsg.style.display = 'block';
+            }
         }
         
         function processData() {
             let ingIdx = -1, gasIdx = -1;
+            
             for (let i = 0; i < rawData.length; i++) {
-                if (rawData[i][0] === 'Ingresos') ingIdx = i;
-                if (rawData[i][0] === 'Gastos') gasIdx = i;
+                const firstCell = String(rawData[i][0]).trim();
+                if (firstCell === 'Ingresos') ingIdx = i;
+                if (firstCell === 'Gastos') gasIdx = i;
+            }
+            
+            if (ingIdx === -1 || gasIdx === -1) {
+                months = [];
+                return;
             }
             
             months = [];
-            for (let col = 1; col < rawData[0].length; col++) {
-                const h = rawData[0][col]?.toString().trim();
-                if (h) {
-                    const ing = rawData[ingIdx]?.[col] || 0;
-                    const gas = rawData[gasIdx]?.[col] || 0;
-                    if (ing > 0 || gas > 0) months.push({ name: h, col });
+            
+            const ingresosRow = rawData[ingIdx];
+            const gastosRow = rawData[gasIdx];
+            
+            // Lista de meses en orden
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                               'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            
+            // Primero: extraer todos los nombres de meses del header, en orden
+            const foundMonths = [];
+            for (let i = 0; i < ingIdx; i++) {
+                for (let col = 0; col < rawData[i].length; col++) {
+                    const cell = String(rawData[i][col]).trim().replace(/"/g, '').replace(/\n/g, ' ').trim();
+                    for (let m of monthNames) {
+                        if (cell.includes(m) && !foundMonths.find(x => x === m)) {
+                            foundMonths.push(m);
+                            console.log(`Encontrado mes: ${m}`);
+                        }
+                    }
                 }
             }
+            
+            console.log('Meses encontrados en header:', foundMonths);
+            
+            // Ahora recorrer columnas de datos
+            let monthIndex = 0;
+            for (let col = 0; col < Math.max(ingresosRow.length, gastosRow.length); col++) {
+                const ing = parseNumber(ingresosRow[col] || '');
+                const gas = parseNumber(gastosRow[col] || '');
+                
+                // Si tiene ingresos o gastos, es una columna de mes válida
+                if (ing !== 0 || gas !== 0) {
+                    let monthName = '';
+                    
+                    // Usar el mes encontrado en orden
+                    if (monthIndex < foundMonths.length) {
+                        monthName = foundMonths[monthIndex] + ' 2026';
+                    } else {
+                        monthName = `Mes ${col}`;
+                    }
+                    
+                    months.push({ name: monthName, col });
+                    console.log(`Col ${col}: "${monthName}" | Ing: ${ing} | Gas: ${gas}`);
+                    monthIndex++;
+                }
+            }
+            
+            console.log('Meses finales:', months);
         }
         
         function renderUI() {
@@ -407,6 +473,7 @@
         
         function selectMonth(name) {
             currentMonth = months.find(m => m.name === name);
+            if (!currentMonth) return;
             document.querySelectorAll('.month-tab').forEach(b => 
                 b.classList.toggle('active', b.textContent.trim() === name)
             );
@@ -414,18 +481,22 @@
         }
         
         function renderDashboard() {
-            let ingIdx = rawData.findIndex(r => r[0] === 'Ingresos');
-            let gasIdx = rawData.findIndex(r => r[0] === 'Gastos');
+            let ingIdx = rawData.findIndex(r => r[0].trim() === 'Ingresos');
+            let gasIdx = rawData.findIndex(r => r[0].trim() === 'Gastos');
+            
+            if (ingIdx === -1 || gasIdx === -1) return;
+            
             const col = currentMonth.col;
-            const ing = rawData[ingIdx][col] || 0;
-            const gas = rawData[gasIdx][col] || 0;
+            const ing = parseNumber(rawData[ingIdx][col]);
+            const gas = Math.abs(parseNumber(rawData[gasIdx][col]));
             const bal = ing - gas;
             
             const cats = [];
             for (let i = gasIdx + 1; i < rawData.length; i++) {
-                const name = rawData[i][0];
-                const amt = rawData[i][col] || 0;
-                if (name && name.trim() && !['TOTAL', 'Ahorro', 'Deudas'].includes(name) && amt > 0) {
+                const name = rawData[i][0].trim();
+                const amt = Math.abs(parseNumber(rawData[i][col]));
+                
+                if (name && !['TOTAL', 'Ahorro', 'Deudas', 'Carlos', 'Venezuela', ''].includes(name) && amt > 0) {
                     cats.push({ name, amount: amt });
                 }
             }
@@ -437,37 +508,86 @@
         
         function renderMetrics(ing, gas, bal) {
             document.getElementById('metricsContainer').innerHTML = `
-                <div class="metric-card ingresos"><div class="metric-label">💵 Ingresos</div><div class="metric-value">$${ing.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
-                <div class="metric-card gasto"><div class="metric-label">💸 Gastos</div><div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
-                <div class="metric-card ${bal >= 0 ? 'ingresos' : 'balance'}"><div class="metric-label">${bal >= 0 ? '✅' : '⚠️'} Balance</div><div class="metric-value">$${bal.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div></div>
+                <div class="metric-card ingresos">
+                    <div class="metric-label">💵 Ingresos</div>
+                    <div class="metric-value">$${ing.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                </div>
+                <div class="metric-card gasto">
+                    <div class="metric-label">💸 Gastos</div>
+                    <div class="metric-value">$${gas.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                </div>
+                <div class="metric-card ${bal >= 0 ? 'ingresos' : 'balance'}">
+                    <div class="metric-label">${bal >= 0 ? '✅' : '⚠️'} Balance</div>
+                    <div class="metric-value">$${bal.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                </div>
             `;
         }
         
         function renderCharts(ing, gas, cats) {
-            Object.values(charts).forEach(c => c.destroy());
+            Object.values(charts).forEach(c => {
+                try { c.destroy(); } catch(e) {}
+            });
             charts = {};
             
             charts.comp = new Chart(document.getElementById('comparisonChart'), {
                 type: 'bar',
-                data: { labels: ['Ingresos', 'Gastos'], datasets: [{ data: [ing, gas], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => '$' + v.toLocaleString('es-AR') } } } }
+                data: { 
+                    labels: ['Ingresos', 'Gastos'], 
+                    datasets: [{ 
+                        data: [ing, gas], 
+                        backgroundColor: ['#10b981', '#ef4444'], 
+                        borderRadius: 8 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { callback: v => '$' + v.toLocaleString('es-AR') } 
+                        } 
+                    } 
+                }
             });
             
             const sorted = [...cats].sort((a, b) => b.amount - a.amount);
             const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#6366f1', '#f97316', '#14b8a6', '#d946ef'];
             
-            charts.cat = new Chart(document.getElementById('pieChart'), {
+            charts.bar = new Chart(document.getElementById('barChart'), {
                 type: 'bar',
-                data: { labels: sorted.map(c => c.name), datasets: [{ data: sorted.map(c => c.amount), backgroundColor: colors.slice(0, sorted.length), borderRadius: 6 }] },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { callback: v => '$' + v.toLocaleString('es-AR') } } } }
+                data: { 
+                    labels: sorted.map(c => c.name), 
+                    datasets: [{ 
+                        data: sorted.map(c => c.amount), 
+                        backgroundColor: colors.slice(0, sorted.length), 
+                        borderRadius: 6 
+                    }] 
+                },
+                options: { 
+                    indexAxis: 'y', 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        x: { 
+                            beginAtZero: true,
+                            ticks: { callback: v => '$' + v.toLocaleString('es-AR') } 
+                        } 
+                    } 
+                }
             });
         }
         
         function renderTable(cats) {
             const tbody = document.getElementById('tableBody');
-            if (cats.length === 0) { tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin datos</td></tr>'; return; }
+            if (cats.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="2" class="no-data">Sin datos</td></tr>'; 
+                return; 
+            }
             tbody.innerHTML = cats.sort((a, b) => b.amount - a.amount).map(c => 
-                `<tr><td class="category-name">${c.name}</td><td class="amount">$${c.amount.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`
+                `<tr><td class="category-name">${c.name}</td><td class="amount">$${c.amount.toLocaleString('es-AR', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td></tr>`
             ).join('');
         }
         
