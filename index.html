@@ -125,6 +125,7 @@
             </div>
         </div>
 
+```
     <div class="month-tabs" id="monthTabs"></div>
     
     <!-- Contenido Inicio -->
@@ -513,12 +514,20 @@
         const FIXED_EXPENSE_CATS = ['Alquiler/Expensas','Supermercado/Almacen','Restaurantes/Delivery','Deudas','Caja de Medicos','Compras cuotas','Venezuela','Taxis/Ubers/Cabify','Ropa/Indumentaria'];
         
         const expenseColors = ['#ef4444','#f97316','#ec4899','#8b5cf6','#3b82f6','#06b6d4','#10b981','#f59e0b','#6366f1','#14b8a6','#d946ef','#84cc16','#0ea5e9','#a855f7'];
+        // Color fijo por nombre: se asigna una vez al construir orderedExpenseCats
+        const expenseColorMap = {};
         
         const allExpenseCats = Object.keys(expenseCategoryData);
-        const fixedAvailable = FIXED_EXPENSE_CATS.filter(c => allExpenseCats.includes(c));
-        const restCats = allExpenseCats.filter(c => !FIXED_EXPENSE_CATS.includes(c) && c !== 'Otros').sort();
+        const lastMonth = categoryLabels[categoryLabels.length - 1];
+        const getLastVal = name => expenseCategoryData[name][lastMonth] || 0;
+        const nonOtrosCats = allExpenseCats.filter(c => c !== 'Otros')
+            .sort((a, b) => getLastVal(b) - getLastVal(a));
         const otrosCat = allExpenseCats.includes('Otros') ? ['Otros'] : [];
-        const orderedExpenseCats = [...fixedAvailable, ...restCats, ...otrosCat];
+        const orderedExpenseCats = [...nonOtrosCats, ...otrosCat];
+        const fixedAvailable = FIXED_EXPENSE_CATS.filter(c => allExpenseCats.includes(c));
+        orderedExpenseCats.forEach((name, idx) => {
+            expenseColorMap[name] = expenseColors[idx % expenseColors.length];
+        });
         
         // Estado de checkboxes (activo = en fijas, o total > 0)
         const expenseCatState = {};
@@ -530,16 +539,16 @@
             return orderedExpenseCats
                 .filter(name => expenseCatState[name])
                 .map((name, idx) => {
-                    const colorIdx = orderedExpenseCats.indexOf(name) % expenseColors.length;
+                    const color = expenseColorMap[name];
                     return {
                         label: name,
                         data: categoryLabels.map(monthName => expenseCategoryData[name][monthName] || 0),
-                        borderColor: expenseColors[colorIdx],
+                        borderColor: color,
                         backgroundColor: 'transparent',
                         borderWidth: 2.5,
                         tension: 0.4,
                         pointRadius: 4,
-                        pointBackgroundColor: expenseColors[colorIdx],
+                        pointBackgroundColor: color,
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         fill: false
@@ -550,11 +559,11 @@
         function buildExpenseCheckboxes() {
             const wrapper = document.getElementById('expenseCatCheckboxes');
             wrapper.innerHTML = orderedExpenseCats.map(name => {
-                const colorIdx = orderedExpenseCats.indexOf(name) % expenseColors.length;
+                const color = expenseColorMap[name];
                 const checked = expenseCatState[name] ? 'checked' : '';
                 const isFixed = FIXED_EXPENSE_CATS.includes(name);
-                return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 6px;border-radius:6px;background:${expenseCatState[name] ? expenseColors[colorIdx]+'18' : '#f5f5f5'};border:1px solid ${expenseCatState[name] ? expenseColors[colorIdx] : '#ddd'}">
-                    <input type="checkbox" ${checked} onchange="toggleExpenseCat('${name}', this.checked)" style="accent-color:${expenseColors[colorIdx]};width:14px;height:14px;">
+                return `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;padding:3px 6px;border-radius:6px;background:${expenseCatState[name] ? color+'18' : '#f5f5f5'};border:1px solid ${expenseCatState[name] ? color : '#ddd'}">
+                    <input type="checkbox" ${checked} onchange="toggleExpenseCat('${name}', this.checked)" style="accent-color:${color};width:14px;height:14px;">
                     <span style="font-size:11px;font-weight:${isFixed?'600':'400'};color:#333;white-space:nowrap">${name}</span>
                 </label>`;
             }).join('');
@@ -791,6 +800,7 @@
     
     cargarDatos();
 </script>
+```
 
 </body>
 </html>
